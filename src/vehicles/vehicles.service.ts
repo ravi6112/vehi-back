@@ -1,13 +1,11 @@
 import { VehiclesEntity } from './vehicles.entity';
-import { vehiclesDto } from './vehicles.dto';
+import { VehiclesDto } from './vehicles.dto';
 import { InjectQueue } from '@nestjs/bull';
-import { HttpService, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import CSV from 'csv-parser';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository, getConnection } from 'typeorm';
-// import * as fs from 'fs';
-// import * as path from 'path';
 
 @Injectable()
 export class VehiclesService {
@@ -45,18 +43,43 @@ export class VehiclesService {
     return true;
   }
 
-  async storeData(data: vehiclesDto[]) {
-    console.log('execution of query');
-    console.log(data);
-    await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(VehiclesEntity)
-      .values(data)
-      .execute();
+  async storeData(data: VehiclesDto[]) {
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(VehiclesEntity)
+        .values(data)
+        .execute();
+    } catch (err) {
+      console.log(err);
+      throw new HttpException(
+        'Internal Server Error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async showAll() {
     return this.vehiclesRepository.find();
+  }
+
+  async updateVehicle(uid: string, data: Partial<VehiclesDto>) {
+    let idea = await this.vehiclesRepository.findOne({ where: { uid } });
+    if (!idea) {
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
+    await this.vehiclesRepository.update({ uid }, data);
+    idea = await this.vehiclesRepository.findOne({ where: { uid } });
+    return idea;
+  }
+
+  async deleteVehicle(uid: string) {
+    const idea = await this.vehiclesRepository.findOne({ where: { uid } });
+    if (!idea) {
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
+    await this.vehiclesRepository.delete({ uid });
+    return idea;
   }
 }

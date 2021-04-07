@@ -1,15 +1,33 @@
+scalar Date
+
 type Vehicles {
-  uuid: String!
-  id: String!
-  first_name: String!
-  last_name: String!
-  email: String!
-  car_make: String!
-  car_model: String!
-  vin_number: String!
-  manufactrued_date: String!
+  uid: ID!
+  id: String
+  first_name: String
+  last_name: String
+  email: String
+  car_make: String
+  car_model: String
+  vin_number: String
+  manufactured_date: Date
 }
 
 type Query {
     vehicles: [Vehicles!]
+}
+
+type Mutation {
+    updateVehicle (
+        uid: ID!,
+        id: String,
+        first_name: String,
+        last_name: String,
+        email: String,
+        car_make: String,
+        car_model: String,
+        vin_number: String,
+        manufactured_date: Date
+  ) : Vehicles
+  
+    deleteVehicle (uid: String): Vehicles!
 }

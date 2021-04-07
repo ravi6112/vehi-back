@@ -1,32 +1,29 @@
-import { IsDate, IsInt, IsString } from 'class-validator';
+import { IsDate, IsString } from 'class-validator';
 
-export class vehiclesDto {
-  @IsString()
-  uuid: string;
-
+export class VehiclesDto {
   @IsString()
   id: string;
 
   @IsString()
-  firstName: string;
+  first_name: string;
 
   @IsString()
-  lastName: string;
+  last_name: string;
 
   @IsString()
   email: string;
 
   @IsString()
-  carMake: string;
+  car_make: string;
 
   @IsString()
-  carModel: string;
+  car_model: string;
 
   @IsString()
-  vinNumber: string;
+  vin_number: string;
 
   @IsDate()
-  manufactruedDate: Date;
+  manufactured_date: Date;
 
 //   @IsInt()
 //   ageOfVehicle: Int16Array;
