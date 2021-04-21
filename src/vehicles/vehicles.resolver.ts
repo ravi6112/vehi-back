@@ -39,5 +39,5 @@ export class VehiclesResolver {
   @Mutation()
   async deleteVehicle(@Args('uid') uid: string) {
     return await this.vehicleService.deleteVehicle(uid);
-  };
+  }
 }

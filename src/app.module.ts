@@ -19,7 +19,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     }),
     GraphQLModule.forRoot({
       typePaths: ['./**/*.graphql'],
-    })
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

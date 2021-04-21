@@ -1,3 +1,4 @@
+import { AppGateway } from '../app.gateway';
 import { VehiclesResolver } from './vehicles.resolver';
 import { FileConsumer } from './file.process';
 import { VehiclesEntity } from './vehicles.entity';
@@ -16,6 +17,6 @@ import { VehiclesService } from './vehicles.service';
     }),
   ],
   controllers: [VehiclesController],
-  providers: [VehiclesService, FileConsumer, VehiclesResolver],
+  providers: [VehiclesService, FileConsumer, VehiclesResolver, AppGateway],
 })
 export class VehiclesModule {}

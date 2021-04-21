@@ -1,3 +1,4 @@
+import { AppGateway } from './../app.gateway';
 import { VehiclesEntity } from './vehicles.entity';
 import { VehiclesDto } from './vehicles.dto';
 import { InjectQueue } from '@nestjs/bull';
@@ -5,7 +6,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import CSV from 'csv-parser';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository, getConnection } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 
 @Injectable()
 export class VehiclesService {
@@ -13,7 +14,7 @@ export class VehiclesService {
     @InjectQueue('file') private fileQueue: Queue,
     @InjectRepository(VehiclesEntity)
     private vehiclesRepository: Repository<VehiclesEntity>,
-    private connection: Connection,
+    private appGateway: AppGateway,
   ) {}
 
   async createTable(file: Express.Multer.File) {
@@ -51,6 +52,7 @@ export class VehiclesService {
         .into(VehiclesEntity)
         .values(data)
         .execute();
+      this.appGateway.wss.emit('vehicle', 'csv is uploaded');
     } catch (err) {
       console.log(err);
       throw new HttpException(
