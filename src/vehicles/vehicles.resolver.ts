@@ -11,6 +11,30 @@ export class VehiclesResolver {
     return await this.vehicleService.showAll();
   }
 
+  @Query()
+  async vehiclesPagination(
+    @Args('page') page: number,
+    @Args('newest') newest: boolean,
+  ) {
+    return await this.vehicleService.showPagination(page, newest);
+  }
+
+  @Query()
+  async searchPagination(
+    @Args('page') page: number,
+    // @Args('uid') uid: string,
+    // @Args('id') id: string,
+    // @Args('first_name') first_name: string,
+    // @Args('last_name') last_name: string,
+    // @Args('email') email: string,
+    // @Args('car_make') car_make: string,
+    @Args('car_model') car_model: string,
+    // @Args('vin_number') vin_number: string,
+    // @Args('manufactured_date') manufactured_date: Date,
+  ) {
+    return await this.vehicleService.searchPaginationByElement(page, car_model);
+  }
+
   @Mutation()
   async updateVehicle(
     @Args('uid') uid: string,

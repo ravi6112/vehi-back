@@ -1,10 +1,20 @@
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+// import http from 'http';
+// import * as socketServer from 'socketcluster-server';
+import socketClusterClient = require('socketcluster-client');
 
-@WebSocketGateway(4001)
 export class AppGateway {
-  @WebSocketServer() wss: any;
+  socket: any;
+  constructor() {
+    this.socket = socketClusterClient.create({
+      hostname: 'localhost',
+      port: 8000,
+    });
+  }
 
-  handleConnection(client: any) {
-    client.emit('connection', 'Successfully connected to server');
+  async onComplete() {
+    await this.socket.invoke(
+      'updateProc',
+      'this is the data coming from backend side',
+    );
   }
 }

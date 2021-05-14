@@ -16,6 +16,25 @@ type Query {
     vehicles: [Vehicles!]
 }
 
+type Query {
+    vehiclesPagination(page: Int, newest: Boolean): [Vehicles!]
+}
+
+type Query {
+    searchPagination(
+        page: Int,
+        # uid: ID!,
+        # id: String,
+        # first_name: String,
+        # last_name: String,
+        # email: String,
+        # car_make: String,
+        car_model: String,
+        # vin_number: String,
+        # manufactured_date: Date
+        ): [Vehicles!]
+}
+
 type Mutation {
     updateVehicle (
         uid: ID!,

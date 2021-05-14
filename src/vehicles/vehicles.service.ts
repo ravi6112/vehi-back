@@ -6,7 +6,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import CSV from 'csv-parser';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getConnection } from 'typeorm';
+import { Repository, getConnection, getRepository } from 'typeorm';
 
 @Injectable()
 export class VehiclesService {
@@ -52,7 +52,8 @@ export class VehiclesService {
         .into(VehiclesEntity)
         .values(data)
         .execute();
-      this.appGateway.wss.emit('vehicle', 'csv is uploaded');
+      console.log('csv is uploaded to database');
+      this.appGateway.onComplete();
     } catch (err) {
       console.log(err);
       throw new HttpException(
@@ -66,22 +67,49 @@ export class VehiclesService {
     return this.vehiclesRepository.find();
   }
 
+  async showPagination(page = 1, newest?: boolean) {
+    return this.vehiclesRepository.find({
+      take: 25,
+      skip: 25 * (page - 1),
+    });
+  }
+
   async updateVehicle(uid: string, data: Partial<VehiclesDto>) {
-    let idea = await this.vehiclesRepository.findOne({ where: { uid } });
-    if (!idea) {
+    let vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
+    if (!vehicle) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
     await this.vehiclesRepository.update({ uid }, data);
-    idea = await this.vehiclesRepository.findOne({ where: { uid } });
-    return idea;
+    vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
+    return vehicle;
   }
 
   async deleteVehicle(uid: string) {
-    const idea = await this.vehiclesRepository.findOne({ where: { uid } });
-    if (!idea) {
+    const vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
+    if (!vehicle) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
     await this.vehiclesRepository.delete({ uid });
-    return idea;
+    return vehicle;
+  }
+
+  async searchPaginationByElement(
+    page: number,
+    carModel: string,
+    // vinNumber: string,
+    // manufacturedDate: Date,
+  ) {
+    try {
+      return await getRepository(VehiclesEntity)
+        .createQueryBuilder('vehicle')
+        .take(25)
+        .skip(25 * (page - 1))
+        .where('vehicle.car_model like :car_model', {
+          car_model: `${carModel}%`,
+        })
+        .getMany();
+    } catch (err) {
+      console.log(err);
+    }
   }
 }

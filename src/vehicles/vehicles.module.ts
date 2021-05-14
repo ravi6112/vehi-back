@@ -1,4 +1,4 @@
-import { AppGateway } from '../app.gateway';
+import { AppGateway } from './../app.gateway';
 import { VehiclesResolver } from './vehicles.resolver';
 import { FileConsumer } from './file.process';
 import { VehiclesEntity } from './vehicles.entity';

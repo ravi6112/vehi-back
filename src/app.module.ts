@@ -1,3 +1,4 @@
+import { AppGateway } from './app.gateway';
 import { BullModule } from '@nestjs/bull';
 import { HttpModule, Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -22,6 +23,6 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppGateway],
 })
 export class AppModule {}
