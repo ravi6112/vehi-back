@@ -5,25 +5,25 @@ export class VehiclesDto {
   id: string;
 
   @IsString()
-  first_name: string;
+  firstName: string;
 
   @IsString()
-  last_name: string;
+  lastName: string;
 
   @IsString()
   email: string;
 
   @IsString()
-  car_make: string;
+  carMake: string;
 
   @IsString()
-  car_model: string;
+  carModel: string;
 
   @IsString()
-  vin_number: string;
+  vinNumber: string;
 
   @IsDate()
-  manufactured_date: Date;
+  manufacturedDate: Date;
 
 //   @IsInt()
 //   ageOfVehicle: Int16Array;

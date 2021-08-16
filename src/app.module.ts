@@ -1,11 +1,11 @@
-import { AppGateway } from './app.gateway';
 import { BullModule } from '@nestjs/bull';
-import { HttpModule, Module } from '@nestjs/common';
+import { CacheModule, HttpModule, Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { SocketClusterModule } from './socket-cluster/socket-cluster.module';
 
 @Module({
   imports: [
@@ -21,8 +21,14 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     GraphQLModule.forRoot({
       typePaths: ['./**/*.graphql'],
     }),
+    SocketClusterModule,
+    CacheModule.register(),
+    // PostGraphileModule.forRoot({
+    //   pgConfig: process.env.DATABASE_URL,
+    //   playground: true,
+    // }),
   ],
   controllers: [AppController],
-  providers: [AppService, AppGateway],
+  providers: [AppService],
 })
 export class AppModule {}

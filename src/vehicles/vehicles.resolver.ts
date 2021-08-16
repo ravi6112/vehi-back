@@ -1,3 +1,4 @@
+import { VehiclesEntity } from './vehicles.entity';
 import { VehiclesDto } from './vehicles.dto';
 import { VehiclesService } from './vehicles.service';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
@@ -16,49 +17,49 @@ export class VehiclesResolver {
     @Args('page') page: number,
     @Args('newest') newest: boolean,
   ) {
-    return await this.vehicleService.showPagination(page, newest);
+    const data = await this.vehicleService.showPagination(page, newest);
+    console.log('this is the data ', data);
+    return data;
   }
 
   @Query()
   async searchPagination(
     @Args('page') page: number,
-    // @Args('uid') uid: string,
-    // @Args('id') id: string,
-    // @Args('first_name') first_name: string,
-    // @Args('last_name') last_name: string,
-    // @Args('email') email: string,
-    // @Args('car_make') car_make: string,
-    @Args('car_model') car_model: string,
-    // @Args('vin_number') vin_number: string,
-    // @Args('manufactured_date') manufactured_date: Date,
+    @Args('carModel') carModel: string,
   ) {
-    return await this.vehicleService.searchPaginationByElement(page, car_model);
+    return await this.vehicleService.searchPaginationByElement(page, carModel);
   }
 
-  @Mutation()
-  async updateVehicle(
-    @Args('uid') uid: string,
-    @Args('id') id: string,
-    @Args('first_name') first_name: string,
-    @Args('last_name') last_name: string,
-    @Args('email') email: string,
-    @Args('car_make') car_make: string,
-    @Args('car_model') car_model: string,
-    @Args('vin_number') vin_number: string,
-    @Args('manufactured_date') manufactured_date: Date,
-  ) {
-    const data: Partial<VehiclesDto> = {
-      id,
-      first_name,
-      last_name,
-      email,
-      car_make,
-      car_model,
-      vin_number,
-      manufactured_date,
-    };
-    return await this.vehicleService.updateVehicle(uid, data);
-  }
+  // @Mutation()
+  // async updateVehicle(
+  //   @Args('uid') uid: string,
+  //   @Args('id') id: string,
+  //   @Args('firstName') firstName: string,
+  //   @Args('lastName') lastName: string,
+  //   @Args('email') email: string,
+  //   @Args('carMake') carMake: string,
+  //   @Args('carModel') carModel: string,
+  //   @Args('vinNumber') vinNumber: string,
+  //   @Args('manufacturedDate') manufacturedDate: Date,
+  // ) {
+  //   const data: Partial<VehiclesDto> = {
+  //     id,
+  //     firstName,
+  //     lastName,
+  //     email,
+  //     carMake,
+  //     carModel,
+  //     vinNumber,
+  //     manufacturedDate,
+  //   };
+  //   return await this.vehicleService.updateVehicle(uid, data);
+  // }
+
+  // @Mutation()
+  // async updateVehicle(@Args('vehicle') vehicle: VehiclesEntity) {
+  //   console.log(vehicle);
+  //   return vehicle;
+  // }
 
   @Mutation()
   async deleteVehicle(@Args('uid') uid: string) {

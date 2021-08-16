@@ -3,13 +3,13 @@ scalar Date
 type Vehicles {
   uid: ID!
   id: String
-  first_name: String
-  last_name: String
+  firstName: String
+  lastName: String
   email: String
-  car_make: String
-  car_model: String
-  vin_number: String
-  manufactured_date: Date
+  carMake: String
+  carModel: String
+  vinNumber: String
+  manufacturedDate: Date
 }
 
 type Query {
@@ -29,7 +29,7 @@ type Query {
         # last_name: String,
         # email: String,
         # car_make: String,
-        car_model: String,
+        carModel: String,
         # vin_number: String,
         # manufactured_date: Date
         ): [Vehicles!]
@@ -39,14 +39,17 @@ type Mutation {
     updateVehicle (
         uid: ID!,
         id: String,
-        first_name: String,
-        last_name: String,
+        firstName: String,
+        lastName: String,
         email: String,
-        car_make: String,
-        car_model: String,
-        vin_number: String,
-        manufactured_date: Date
+        carMake: String,
+        carModel: String,
+        vinNumber: String,
+        manufacturedDate: Date
   ) : Vehicles
+
+    # updateVehicle(vehicle: Vehicles!) : Vehicles
+
   
     deleteVehicle (uid: String): Vehicles!
 }

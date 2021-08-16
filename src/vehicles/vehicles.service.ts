@@ -1,20 +1,25 @@
-import { AppGateway } from './../app.gateway';
 import { VehiclesEntity } from './vehicles.entity';
 import { VehiclesDto } from './vehicles.dto';
 import { InjectQueue } from '@nestjs/bull';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpService,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { Queue } from 'bull';
 import CSV from 'csv-parser';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getConnection, getRepository } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 
 @Injectable()
 export class VehiclesService {
+  result: VehiclesDto[] = [];
   constructor(
     @InjectQueue('file') private fileQueue: Queue,
     @InjectRepository(VehiclesEntity)
     private vehiclesRepository: Repository<VehiclesEntity>,
-    private appGateway: AppGateway,
+    private httpService: HttpService,
   ) {}
 
   async createTable(file: Express.Multer.File) {
@@ -28,7 +33,7 @@ export class VehiclesService {
       const csv = fs
         .createReadStream('./uploads/' + file.originalname)
         .pipe(CSV())
-        .on('data', (data) => {
+        .on('data', (data: any) => {
           results.push(data);
         })
         .on('end', () => {
@@ -38,7 +43,7 @@ export class VehiclesService {
     }
   }
 
-  async addQueue(data) {
+  async addQueue(data: any[]) {
     const job = await this.fileQueue.add('vehicles', data);
     console.log('created job ');
     return true;
@@ -53,7 +58,7 @@ export class VehiclesService {
         .values(data)
         .execute();
       console.log('csv is uploaded to database');
-      this.appGateway.onComplete();
+      return Promise.reject(new Error('error throwing'));
     } catch (err) {
       console.log(err);
       throw new HttpException(
@@ -64,52 +69,152 @@ export class VehiclesService {
   }
 
   async showAll() {
-    return this.vehiclesRepository.find();
+    // return this.vehiclesRepository.find();
+    const body = `
+    { 
+      allVehicles { nodes {
+        uid
+        firstName
+        email
+        lastName
+        carMake
+        carModel
+        vinNumber
+        manufacturedDate
+        id
+        
+      }
+    }
+  }`;
+
+    const output = await this.httpService
+      .post('http://localhost:5000/graphql', body, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .subscribe(({ data }) => {
+        console.log(data);
+        this.result = data;
+      });
+    console.log(this.result);
+    return this.result;
   }
 
   async showPagination(page = 1, newest?: boolean) {
-    return this.vehiclesRepository.find({
-      take: 25,
-      skip: 25 * (page - 1),
-    });
+    console.log(page);
+    const postQuery = `
+    query MyQuery {
+      allVehicles(first: 25, orderBy: CAR_MODEL_ASC, offset: ${
+        25 * (page - 1)
+      }) {
+        nodes {
+          firstName
+          id
+          email
+          carModel
+          carMake
+          lastName
+          manufacturedDate
+          nodeId
+          uid
+          vinNumber
+        }
+      }
+    }
+    `;
+
+    return this.httpService
+      .post('http://localhost:5000/graphql', postQuery, {
+        headers: { 'Content-Type': 'application/graphql' },
+      })
+      .toPromise()
+      .then(({ data }) => data.data.allVehicles.nodes);
   }
 
   async updateVehicle(uid: string, data: Partial<VehiclesDto>) {
-    let vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
-    if (!vehicle) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    const postQuery = `
+  mutation MyMutation {
+    updateVehicleByUid(
+      input: {vehiclePatch: {
+        manufacturedDate: "${data.manufacturedDate}", 
+        email: "${data.email}", 
+        firstName: "${data.firstName}", 
+        id: "${data.id}", 
+        vinNumber: "${data.vinNumber}", 
+        carModel: "${data.carModel}", 
+        carMake: "${data.carMake}", 
+        lastName: "${data.lastName}"
+      }, 
+        uid: "${uid}"}
+    ) {
+      vehicle {
+        carMake
+        carModel
+        email
+        firstName
+        id
+        lastName
+        manufacturedDate
+        uid
+        vinNumber
+      }
     }
-    await this.vehiclesRepository.update({ uid }, data);
-    vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
-    return vehicle;
+  }`;
+
+    return this.httpService
+      .post('http://localhost:5000/graphql', postQuery, {
+        headers: { 'Content-Type': 'application/graphql' },
+      })
+      .toPromise()
+      .then(({ data }) => data.data.updateVehicleByUid.vehicle);
   }
 
   async deleteVehicle(uid: string) {
-    const vehicle = await this.vehiclesRepository.findOne({ where: { uid } });
-    if (!vehicle) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    }
-    await this.vehiclesRepository.delete({ uid });
-    return vehicle;
+    const postQuery = `
+    mutation MyMutation {
+      deleteVehicleByUid(input: {uid: "${uid}"}) {
+        vehicle {
+          id
+          uid
+        }
+      }
+    }`;
+
+    return this.httpService
+      .post('http://localhost:5000/graphql', postQuery, {
+        headers: { 'Content-Type': 'application/graphql' },
+      })
+      .toPromise()
+      .then(({ data }) => data.data.deleteVehicleByUid.vehicle);
   }
 
-  async searchPaginationByElement(
-    page: number,
-    carModel: string,
-    // vinNumber: string,
-    // manufacturedDate: Date,
-  ) {
-    try {
-      return await getRepository(VehiclesEntity)
-        .createQueryBuilder('vehicle')
-        .take(25)
-        .skip(25 * (page - 1))
-        .where('vehicle.car_model like :car_model', {
-          car_model: `${carModel}%`,
-        })
-        .getMany();
-    } catch (err) {
-      console.log(err);
+  async searchPaginationByElement(page: number, carModel: string) {
+    const postQuery = `
+    query MyQuery {
+      searchPosts(search: "${carModel}", first: 25, offset: ${
+      25 * (page - 1)
+    }) {
+        nodes {
+          firstName
+          id
+          email
+          carModel
+          carMake
+          lastName
+          manufacturedDate
+          uid
+          vinNumber
+        }
+      }
     }
+    `;
+
+    console.log(postQuery);
+
+    return this.httpService
+      .post('http://localhost:5000/graphql', postQuery, {
+        headers: { 'Content-Type': 'application/graphql' },
+      })
+      .toPromise()
+      .then(({ data }) => data.data.searchPosts.nodes);
   }
 }
